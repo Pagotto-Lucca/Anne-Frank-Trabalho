@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anne • Diário</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), 
+                        url('https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Anne_Frank_passport_photo%2C_May_1942.jpg/1200px-Anne_Frank_passport_photo%2C_May_1942.jpg') center/cover fixed;
+        }
+        .card { background: rgba(255, 255, 255, 0.96); }
+        .photo { height: 200px; object-fit: cover; width: 100%; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <header class="bg-amber-900/95 backdrop-blur-md text-white pt-14 pb-6 px-6 sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <button onclick="history.back()" class="text-2xl"><i class="fas fa-arrow-left"></i></button>
+            <div>
+                <h1 class="text-2xl font-bold">Diário de Anne Frank</h1>
+                <p class="text-amber-200 text-sm">Janeiro — 18 de Junho de 1943</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-xl mx-auto px-4 pt-6">
+
+        <!-- LINHA DO TEMPO -->
+        <div id="timeline-tab" class="tab-content active">
+            <div class="space-y-6" id="timeline"></div>
+        </div>
+
+        <!-- DIÁRIO COMPLETO -->
+        <div id="diary-tab" class="tab-content">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 text-center">
+                <i class="fas fa-book-open text-7xl text-amber-800 mb-6"></i>
+                <h2 class="text-3xl font-bold text-gray-800 mb-3">Diário Completo</h2>
+                <p class="text-gray-600 mb-8">Leia a versão integral do Diário de Anne Frank</p>
+                
+                <a href="https://www.agr-tc.pt/bibliotecadigital/aetc/download/1018/O%20Diario%20de%20Anne%20Frank%20-%20Anne%20Frank.pdf" 
+                   target="_blank"
+                   class="block w-full bg-amber-900 hover:bg-amber-800 text-white py-6 rounded-2xl font-semibold text-lg">
+                    📕 ABRIR DIÁRIO COMPLETO (PDF)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t max-w-xl mx-auto">
+        <div class="flex justify-around py-3">
+            <button onclick="switchTab(0)" id="btn-timeline" class="flex flex-col items-center py-2 px-10 text-amber-900">
+                <i class="fas fa-timeline text-2xl"></i>
+                <span class="text-xs mt-1 font-medium">Linha do Tempo</span>
+            </button>
+            <button onclick="switchTab(1)" id="btn-diary" class="flex flex-col items-center py-2 px-10 text-gray-500">
+                <i class="fas fa-book text-2xl"></i>
+                <span class="text-xs mt-1 font-medium">Diário Completo</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Modal -->
+    <div id="modal" class="hidden fixed inset-0 bg-black/70 flex items-end justify-center z-50">
+        <div class="bg-white w-full max-w-xl rounded-t-3xl p-6 max-h-[90vh] overflow-auto">
+            <div class="flex justify-between mb-4">
+                <h2 id="modal-title" class="text-2xl font-bold"></h2>
+                <button onclick="closeModal()" class="text-4xl text-gray-400">×</button>
+            </div>
+            <div id="modal-date" class="text-amber-700 font-medium"></div>
+            <div id="modal-content" class="mt-5 text-gray-700 leading-relaxed"></div>
+            <button onclick="closeModal()" class="mt-10 w-full bg-amber-900 text-white py-4 rounded-2xl">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        const events = [
+            {
+                date: "Janeiro 1943",
+                title: "Vida no Anexo Secreto",
+                photo: "https://picsum.photos/id/1015/800/600",
+                short: "Os Frank já estão escondidos há 6 meses. A rotina no Anexo é difícil.",
+                full: "A família Frank está escondida desde julho de 1942. Em janeiro de 1943, a vida no Anexo já é marcada por tédio, medo e brigas constantes entre os moradores.",
+                diary: "“Às vezes sinto que estamos em uma prisão.”"
+            },
+            {
+                date: "Fevereiro 1943",
+                title: "Medo das batidas",
+                photo: "https://picsum.photos/id/201/800/600",
+                short: "Aumenta o medo de batidas da Gestapo.",
+                full: "Ouvem com frequência caminhões e sirenes. Qualquer barulho no prédio causa pânico. Anne descreve o terror de serem descobertos.",
+                diary: "“Vivemos com medo constante.”"
+            },
+            {
+                date: "Março 1943",
+                title: "Brigas no Anexo",
+                photo: "https://picsum.photos/id/251/800/600",
+                short: "Tensão entre os adultos aumenta.",
+                full: "As discussões entre os Van Pels e os Frank ficam mais frequentes por causa de espaço, comida e diferenças de opinião.",
+                diary: "“Às vezes tenho vontade de gritar de tanto estresse.”"
+            },
+            {
+                date: "Abril 1943",
+                title: "Notícias da guerra",
+                photo: "https://picsum.photos/id/301/800/600",
+                short: "Acompanhando o rádio com esperança.",
+                full: "Ouvem notícias ruins da guerra, mas também sinais de que os Aliados estão se fortalecendo.",
+                diary: "“Quando a guerra vai acabar?”"
+            },
+            {
+                date: "Maio 1943",
+                title: "Anne e a escrita",
+                photo: "https://picsum.photos/id/64/800/600",
+                short: "Anne escreve cada vez mais.",
+                full: "Anne encontra consolo na escrita. Começa a desenvolver seu talento e reflete profundamente sobre si mesma.",
+                diary: "“Escrever é o meu maior consolo.”"
+            },
+            {
+                date: "Início de Junho 1943",
+                title: "Falta de comida",
+                photo: "https://picsum.photos/id/133/800/600",
+                short: "Racionamento fica mais severo.",
+                full: "A escassez de comida piora. O grupo passa fome e discute sobre como dividir os poucos alimentos disponíveis.",
+                diary: "“Estamos todos magros e pálidos.”"
+            },
+            {
+                date: "18 de Junho 1943",
+                title: "Última entrada deste período",
+                photo: "https://picsum.photos/id/180/800/600",
+                short: "Anne continua registrando sua rotina.",
+                full: "Anne segue escrevendo sobre o dia a dia, seus sentimentos e esperanças. O Anexo continua em silêncio, com muito medo de serem descobertos.",
+                diary: "“Tenho esperança de que um dia tudo isso acabe.”"
+            }
+        ];
+
+        const timeline = document.getElementById('timeline');
+        
+        events.forEach(event => {
+            const card = document.createElement('div');
+            card.className = "card rounded-3xl shadow-2xl overflow-hidden";
+            card.innerHTML = `
+                <img src="${event.photo}" class="photo" alt="${event.title}">
+                <div class="p-5">
+                    <span class="text-amber-700 text-sm font-medium">${event.date}</span>
+                    <h3 class="text-xl font-semibold mt-1">${event.title}</h3>
+                    <p class="text-gray-700 mt-3">${event.short}</p>
+                    <div class="grid grid-cols-2 gap-3 mt-6">
+                        <button onclick="showDetails('${event.title}', '${event.date}', '${event.full}')" 
+                                class="bg-amber-900 text-white py-3.5 rounded-2xl font-medium text-sm">Ler mais</button>
+                        <button onclick="showDiary('${event.title}', '${event.diary}')" 
+                                class="bg-amber-100 text-amber-900 py-3.5 rounded-2xl font-medium text-sm">Trecho</button>
+                    </div>
+                </div>
+            `;
+            timeline.appendChild(card);
+        });
+
+        function showDetails(title, date, content) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-date').textContent = date;
+            document.getElementById('modal-content').innerHTML = `<p>${content}</p>`;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function showDiary(title, quote) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-date').textContent = "Trecho do Diário";
+            document.getElementById('modal-content').innerHTML = `<p class="italic text-lg">"${quote}"</p><p class="text-right text-sm text-gray-500 mt-4">— Anne Frank</p>`;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            if (tab === 0) document.getElementById('timeline-tab').classList.add('active');
+            else document.getElementById('diary-tab').classList.add('active');
+
+            document.getElementById('btn-timeline').classList.toggle('text-amber-900', tab === 0);
+            document.getElementById('btn-timeline').classList.toggle('text-gray-500', tab !== 0);
+            document.getElementById('btn-diary').classList.toggle('text-amber-900', tab === 1);
+            document.getElementById('btn-diary').classList.toggle('text-gray-500', tab !== 1);
+        }
+    </script>
+</body>
+</html>
